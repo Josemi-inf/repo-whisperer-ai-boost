@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Client } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,40 +8,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Plus, Edit, Trash2, Eye } from "lucide-react";
 import ClientForm from "@/components/ClientForm";
 import ClientDetail from "@/components/ClientDetail";
+import { useWebhookData } from "@/hooks/useWebhookData";
 
 const ClientsTab = () => {
-  const [clients, setClients] = useState<Client[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [showDetail, setShowDetail] = useState(false);
-
-  // Datos de ejemplo
-  useEffect(() => {
-    const mockClients: Client[] = [
-      {
-        id: "1",
-        name: "Juan Pérez",
-        phone: "+34 600 123 456",
-        email: "juan@empresa.com",
-        company: "Empresa ABC",
-        status: "active",
-        registrationDate: "2024-01-15",
-        services: ["1", "2"]
-      },
-      {
-        id: "2",
-        name: "María García",
-        phone: "+34 600 789 012",
-        email: "maria@startup.com",
-        company: "Startup XYZ",
-        status: "pending",
-        registrationDate: "2024-02-20",
-        services: ["1"]
-      }
-    ];
-    setClients(mockClients);
-  }, []);
+  
+  const { clients, addClient, updateClient, deleteClient } = useWebhookData();
 
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -51,19 +25,18 @@ const ClientsTab = () => {
   );
 
   const handleAddClient = (client: Omit<Client, 'id'>) => {
-    const newClient = { ...client, id: Date.now().toString() };
-    setClients([...clients, newClient]);
+    addClient(client);
     setShowForm(false);
   };
 
   const handleEditClient = (client: Client) => {
-    setClients(clients.map(c => c.id === client.id ? client : c));
+    updateClient(client);
     setShowForm(false);
     setSelectedClient(null);
   };
 
   const handleDeleteClient = (id: string) => {
-    setClients(clients.filter(c => c.id !== id));
+    deleteClient(id);
   };
 
   const getStatusBadge = (status: Client['status']) => {

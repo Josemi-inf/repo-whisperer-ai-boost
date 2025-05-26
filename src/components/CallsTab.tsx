@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Call } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -8,57 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Download } from "lucide-react";
+import { useWebhookData } from "@/hooks/useWebhookData";
 
 const CallsTab = () => {
-  const [calls, setCalls] = useState<Call[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterService, setFilterService] = useState<string>("all");
   const [filterResult, setFilterResult] = useState<string>("all");
-
-  useEffect(() => {
-    // Datos de ejemplo
-    const mockCalls: Call[] = [
-      {
-        id: "1",
-        clientId: "1",
-        clientName: "Juan Pérez",
-        date: "2024-03-15",
-        time: "10:30",
-        duration: 45,
-        serviceId: "1",
-        serviceName: "Consulta General",
-        result: "success",
-        cost: 2.25,
-        transcription: "Llamada exitosa sobre consulta general"
-      },
-      {
-        id: "2",
-        clientId: "2",
-        clientName: "María García",
-        date: "2024-03-15",
-        time: "11:15",
-        duration: 20,
-        serviceId: "2",
-        serviceName: "Soporte Técnico",
-        result: "no_answer",
-        cost: 0,
-      },
-      {
-        id: "3",
-        clientId: "1",
-        clientName: "Juan Pérez",
-        date: "2024-03-14",
-        time: "16:45",
-        duration: 60,
-        serviceId: "3",
-        serviceName: "Consulta Especializada",
-        result: "success",
-        cost: 4.50,
-        recording: "recording_123.mp3"
-      }
-    ];
-    setCalls(mockCalls);
-  }, []);
+  
+  const { calls } = useWebhookData();
 
   const filteredCalls = calls.filter(call => {
     const matchesSearch = call.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||

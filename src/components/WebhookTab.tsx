@@ -8,14 +8,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Copy, RefreshCw, CheckCircle, XCircle, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useWebhookData } from "@/hooks/useWebhookData";
 
 const WebhookTab = () => {
   const [webhookUrl, setWebhookUrl] = useState("");
   const [tempWebhookUrl, setTempWebhookUrl] = useState("");
   const [isEditing, setIsEditing] = useState(false);
-  const [webhookData, setWebhookData] = useState<WebhookData[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const { toast } = useToast();
+  const { webhookData, addWebhookData, processWebhook } = useWebhookData();
 
   useEffect(() => {
     // Cargar URL guardada del localStorage o generar una por defecto
@@ -31,46 +32,43 @@ const WebhookTab = () => {
       localStorage.setItem('webhookUrl', initialUrl);
     }
 
-    // Datos de ejemplo de webhooks recibidos
-    const mockWebhookData: WebhookData[] = [
-      {
-        id: "1",
-        timestamp: "2024-03-15T10:30:00Z",
-        type: "client",
-        data: {
-          name: "Nuevo Cliente",
-          phone: "+34 600 123 456",
-          email: "nuevo@empresa.com"
-        },
-        processed: true
-      },
-      {
-        id: "2",
-        timestamp: "2024-03-15T11:15:00Z",
-        type: "call",
-        data: {
-          clientId: "1",
-          duration: 45,
-          result: "success",
-          cost: 2.25
-        },
-        processed: true
-      },
-      {
-        id: "3",
-        timestamp: "2024-03-15T12:00:00Z",
-        type: "call",
-        data: {
-          clientId: "2",
-          duration: 30,
-          result: "failed",
-          cost: 0
-        },
-        processed: false
+    // Simular recepción de webhooks en desarrollo
+    const simulateWebhook = () => {
+      // Solo simular si no hay muchos webhooks ya
+      if (webhookData.length < 5) {
+        const mockWebhook = Math.random() > 0.5 ? {
+          timestamp: new Date().toISOString(),
+          type: 'client' as const,
+          data: {
+            name: `Cliente ${Math.floor(Math.random() * 1000)}`,
+            phone: `+34 6${Math.floor(Math.random() * 100000000).toString().padStart(8, '0')}`,
+            email: `cliente${Math.floor(Math.random() * 1000)}@empresa.com`,
+            company: `Empresa ${Math.floor(Math.random() * 100)}`,
+            status: 'pending'
+          },
+          processed: false
+        } : {
+          timestamp: new Date().toISOString(),
+          type: 'call' as const,
+          data: {
+            clientId: "1",
+            duration: Math.floor(Math.random() * 60) + 10,
+            result: Math.random() > 0.3 ? 'success' : 'failed',
+            cost: Math.random() * 5,
+            serviceName: 'Consulta General'
+          },
+          processed: false
+        };
+
+        addWebhookData(mockWebhook);
+        console.log('Webhook simulado recibido:', mockWebhook);
       }
-    ];
-    setWebhookData(mockWebhookData);
-  }, []);
+    };
+
+    // Simular webhooks cada 30 segundos en desarrollo
+    const interval = setInterval(simulateWebhook, 30000);
+    return () => clearInterval(interval);
+  }, [webhookData.length, addWebhookData]);
 
   const copyToClipboard = async () => {
     try {
@@ -120,12 +118,8 @@ const WebhookTab = () => {
     });
   };
 
-  const processWebhook = (id: string) => {
-    setWebhookData(prev => 
-      prev.map(item => 
-        item.id === id ? { ...item, processed: true } : item
-      )
-    );
+  const handleProcessWebhook = (id: string) => {
+    processWebhook(id);
     toast({
       title: "Webhook procesado",
       description: "Los datos han sido integrados al sistema"
@@ -286,7 +280,7 @@ const WebhookTab = () => {
                     {!item.processed && (
                       <Button
                         size="sm"
-                        onClick={() => processWebhook(item.id)}
+                        onClick={() => handleProcessWebhook(item.id)}
                       >
                         Procesar
                       </Button>
