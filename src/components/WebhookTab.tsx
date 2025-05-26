@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { WebhookData } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,19 +6,30 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Copy, RefreshCw, CheckCircle, XCircle } from "lucide-react";
+import { Copy, RefreshCw, CheckCircle, XCircle, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const WebhookTab = () => {
   const [webhookUrl, setWebhookUrl] = useState("");
+  const [tempWebhookUrl, setTempWebhookUrl] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
   const [webhookData, setWebhookData] = useState<WebhookData[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Simular URL del webhook (en producción vendría del backend)
-    const generatedUrl = `${window.location.origin}/api/webhook/${Math.random().toString(36).substr(2, 9)}`;
-    setWebhookUrl(generatedUrl);
+    // Cargar URL guardada del localStorage o generar una por defecto
+    const savedUrl = localStorage.getItem('webhookUrl');
+    const defaultUrl = `${window.location.origin}/api/webhook/${Math.random().toString(36).substr(2, 9)}`;
+    const initialUrl = savedUrl || defaultUrl;
+    
+    setWebhookUrl(initialUrl);
+    setTempWebhookUrl(initialUrl);
+
+    // Si no había URL guardada, guardar la generada
+    if (!savedUrl) {
+      localStorage.setItem('webhookUrl', initialUrl);
+    }
 
     // Datos de ejemplo de webhooks recibidos
     const mockWebhookData: WebhookData[] = [
@@ -78,6 +88,30 @@ const WebhookTab = () => {
     }
   };
 
+  const saveWebhookUrl = () => {
+    if (!tempWebhookUrl.trim()) {
+      toast({
+        title: "Error",
+        description: "La URL no puede estar vacía",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setWebhookUrl(tempWebhookUrl);
+    localStorage.setItem('webhookUrl', tempWebhookUrl);
+    setIsEditing(false);
+    toast({
+      title: "URL guardada",
+      description: "La URL del webhook ha sido actualizada correctamente"
+    });
+  };
+
+  const cancelEdit = () => {
+    setTempWebhookUrl(webhookUrl);
+    setIsEditing(false);
+  };
+
   const testConnection = () => {
     setIsConnected(true);
     toast({
@@ -114,16 +148,37 @@ const WebhookTab = () => {
             <div className="flex gap-2 mt-1">
               <Input
                 id="webhook-url"
-                value={webhookUrl}
-                readOnly
-                className="font-mono text-sm"
+                value={isEditing ? tempWebhookUrl : webhookUrl}
+                onChange={(e) => setTempWebhookUrl(e.target.value)}
+                readOnly={!isEditing}
+                className={`font-mono text-sm ${!isEditing ? 'bg-gray-50' : ''}`}
+                placeholder="Ingresa tu URL del webhook personalizada"
               />
-              <Button variant="outline" onClick={copyToClipboard}>
-                <Copy className="h-4 w-4" />
-              </Button>
+              {!isEditing ? (
+                <>
+                  <Button variant="outline" onClick={() => setIsEditing(true)}>
+                    Editar
+                  </Button>
+                  <Button variant="outline" onClick={copyToClipboard}>
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="default" onClick={saveWebhookUrl}>
+                    <Save className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" onClick={cancelEdit}>
+                    Cancelar
+                  </Button>
+                </>
+              )}
             </div>
             <p className="text-sm text-gray-600 mt-1">
-              Usa esta URL en n8n para enviar datos de clientes y llamadas
+              {isEditing 
+                ? "Ingresa tu URL personalizada del webhook" 
+                : "Usa esta URL en n8n para enviar datos de clientes y llamadas"
+              }
             </p>
           </div>
 
