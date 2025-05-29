@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { WebhookData } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Copy, RefreshCw, CheckCircle, XCircle, Save } from "lucide-react";
+import { Copy, RefreshCw, CheckCircle, XCircle, Save, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useWebhookData } from "@/hooks/useWebhookData";
 
@@ -86,6 +87,11 @@ const WebhookTab = () => {
     }
   };
 
+  const startEditing = () => {
+    setIsEditing(true);
+    setTempWebhookUrl(webhookUrl);
+  };
+
   const saveWebhookUrl = () => {
     if (!tempWebhookUrl.trim()) {
       toast({
@@ -145,12 +151,13 @@ const WebhookTab = () => {
                 value={isEditing ? tempWebhookUrl : webhookUrl}
                 onChange={(e) => setTempWebhookUrl(e.target.value)}
                 readOnly={!isEditing}
-                className={`font-mono text-sm ${!isEditing ? 'bg-gray-50' : ''}`}
+                className={`font-mono text-sm ${!isEditing ? 'bg-gray-50' : 'bg-white'}`}
                 placeholder="Ingresa tu URL del webhook personalizada"
               />
               {!isEditing ? (
                 <>
-                  <Button variant="outline" onClick={() => setIsEditing(true)}>
+                  <Button variant="outline" onClick={startEditing}>
+                    <Edit className="h-4 w-4 mr-2" />
                     Editar
                   </Button>
                   <Button variant="outline" onClick={copyToClipboard}>
@@ -160,7 +167,8 @@ const WebhookTab = () => {
               ) : (
                 <>
                   <Button variant="default" onClick={saveWebhookUrl}>
-                    <Save className="h-4 w-4" />
+                    <Save className="h-4 w-4 mr-2" />
+                    Guardar
                   </Button>
                   <Button variant="outline" onClick={cancelEdit}>
                     Cancelar
