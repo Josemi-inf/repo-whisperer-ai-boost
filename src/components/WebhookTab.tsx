@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { WebhookData } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -150,8 +149,8 @@ const WebhookTab = () => {
                 id="webhook-url"
                 value={isEditing ? tempWebhookUrl : webhookUrl}
                 onChange={(e) => setTempWebhookUrl(e.target.value)}
-                readOnly={!isEditing}
-                className={`font-mono text-sm ${!isEditing ? 'bg-gray-50' : 'bg-white'}`}
+                disabled={!isEditing}
+                className={`font-mono text-sm ${!isEditing ? 'bg-gray-50 text-gray-700' : 'bg-white'}`}
                 placeholder="Ingresa tu URL del webhook personalizada"
               />
               {!isEditing ? (
