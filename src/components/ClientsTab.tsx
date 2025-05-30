@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Client } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -5,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Edit, Trash2, Eye } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, RefreshCw } from "lucide-react";
 import ClientForm from "@/components/ClientForm";
 import ClientDetail from "@/components/ClientDetail";
 import { useWebhookData } from "@/hooks/useWebhookData";
+import { useToast } from "@/hooks/use-toast";
 
 const ClientsTab = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -16,7 +18,8 @@ const ClientsTab = () => {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   
-  const { clients, addClient, updateClient, deleteClient } = useWebhookData();
+  const { clients, loading, addClient, updateClient, deleteClient, refreshData } = useWebhookData();
+  const { toast } = useToast();
 
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -24,19 +27,55 @@ const ClientsTab = () => {
     client.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAddClient = (client: Omit<Client, 'id'>) => {
-    addClient(client);
-    setShowForm(false);
+  const handleAddClient = async (client: Omit<Client, 'id' | 'created_at' | 'updated_at'>) => {
+    try {
+      await addClient(client);
+      setShowForm(false);
+      toast({
+        title: "Cliente creado",
+        description: "El cliente se ha creado correctamente"
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo crear el cliente",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleEditClient = (client: Client) => {
-    updateClient(client);
-    setShowForm(false);
-    setSelectedClient(null);
+  const handleEditClient = async (client: Client) => {
+    try {
+      await updateClient(client);
+      setShowForm(false);
+      setSelectedClient(null);
+      toast({
+        title: "Cliente actualizado",
+        description: "El cliente se ha actualizado correctamente"
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el cliente",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleDeleteClient = (id: string) => {
-    deleteClient(id);
+  const handleDeleteClient = async (id: string) => {
+    try {
+      await deleteClient(id);
+      toast({
+        title: "Cliente eliminado",
+        description: "El cliente se ha eliminado correctamente"
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el cliente",
+        variant: "destructive"
+      });
+    }
   };
 
   const getStatusBadge = (status: Client['status']) => {
@@ -47,6 +86,19 @@ const ClientsTab = () => {
     };
     return <Badge className={variants[status]}>{status}</Badge>;
   };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-8 text-center">
+          <div className="flex items-center justify-center gap-2">
+            <RefreshCw className="h-4 w-4 animate-spin" />
+            <span>Cargando clientes...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (showDetail && selectedClient) {
     return (
@@ -83,10 +135,16 @@ const ClientsTab = () => {
               Administra la información de tus clientes
             </CardDescription>
           </div>
-          <Button onClick={() => setShowForm(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nuevo Cliente
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={refreshData} variant="outline">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Actualizar
+            </Button>
+            <Button onClick={() => setShowForm(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nuevo Cliente
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -119,7 +177,7 @@ const ClientsTab = () => {
                 <TableCell>{client.email}</TableCell>
                 <TableCell>{client.company}</TableCell>
                 <TableCell>{getStatusBadge(client.status)}</TableCell>
-                <TableCell>{new Date(client.registrationDate).toLocaleDateString()}</TableCell>
+                <TableCell>{new Date(client.registration_date).toLocaleDateString()}</TableCell>
                 <TableCell>
                   <div className="flex gap-2">
                     <Button
@@ -153,6 +211,13 @@ const ClientsTab = () => {
                 </TableCell>
               </TableRow>
             ))}
+            {filteredClients.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  No se encontraron clientes
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </CardContent>

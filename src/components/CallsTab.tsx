@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Call } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,23 +7,25 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Download } from "lucide-react";
+import { Eye, Download, RefreshCw } from "lucide-react";
 import { useWebhookData } from "@/hooks/useWebhookData";
 
 const CallsTab = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterService, setFilterService] = useState<string>("all");
+  const [filterType, setFilterType] = useState<string>("all");
   const [filterResult, setFilterResult] = useState<string>("all");
   
-  const { calls } = useWebhookData();
+  const { calls, loading, refreshData } = useWebhookData();
 
   const filteredCalls = calls.filter(call => {
-    const matchesSearch = call.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         call.serviceName.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesService = filterService === "all" || call.serviceId === filterService;
+    const matchesSearch = (call.client_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         call.from_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         call.to_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         call.call_id?.toLowerCase().includes(searchTerm.toLowerCase())) ?? false;
+    const matchesType = filterType === "all" || call.type === filterType;
     const matchesResult = filterResult === "all" || call.result === filterResult;
     
-    return matchesSearch && matchesService && matchesResult;
+    return matchesSearch && matchesType && matchesResult;
   });
 
   const getResultBadge = (result: Call['result']) => {
@@ -44,6 +47,19 @@ const CallsTab = () => {
   const totalCalls = filteredCalls.length;
   const totalCost = filteredCalls.reduce((sum, call) => sum + call.cost, 0);
   const successRate = totalCalls > 0 ? (filteredCalls.filter(call => call.result === 'success').length / totalCalls * 100).toFixed(1) : 0;
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-8 text-center">
+          <div className="flex items-center justify-center gap-2">
+            <RefreshCw className="h-4 w-4 animate-spin" />
+            <span>Cargando llamadas...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -77,29 +93,36 @@ const CallsTab = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Registro de Llamadas</CardTitle>
-          <CardDescription>
-            Historial completo de todas las llamadas realizadas
-          </CardDescription>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>Registro de Llamadas</CardTitle>
+              <CardDescription>
+                Historial completo de todas las llamadas procesadas desde n8n
+              </CardDescription>
+            </div>
+            <Button onClick={refreshData} variant="outline">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Actualizar
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {/* Filtros */}
           <div className="flex flex-wrap gap-4 mb-6">
             <Input
-              placeholder="Buscar por cliente o servicio..."
+              placeholder="Buscar por cliente, teléfono o Call ID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-sm"
             />
-            <Select value={filterService} onValueChange={setFilterService}>
+            <Select value={filterType} onValueChange={setFilterType}>
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filtrar por servicio" />
+                <SelectValue placeholder="Filtrar por tipo" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos los servicios</SelectItem>
-                <SelectItem value="1">Consulta General</SelectItem>
-                <SelectItem value="2">Soporte Técnico</SelectItem>
-                <SelectItem value="3">Consulta Especializada</SelectItem>
+                <SelectItem value="all">Todos los tipos</SelectItem>
+                <SelectItem value="inbound">Entrante</SelectItem>
+                <SelectItem value="outbound">Saliente</SelectItem>
               </SelectContent>
             </Select>
             <Select value={filterResult} onValueChange={setFilterResult}>
@@ -119,26 +142,50 @@ const CallsTab = () => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Call ID</TableHead>
                 <TableHead>Cliente</TableHead>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Hora</TableHead>
-                <TableHead>Servicio</TableHead>
+                <TableHead>Fecha/Hora</TableHead>
+                <TableHead>De → Para</TableHead>
+                <TableHead>Tipo</TableHead>
                 <TableHead>Duración</TableHead>
                 <TableHead>Resultado</TableHead>
                 <TableHead>Coste</TableHead>
+                <TableHead>Sentimiento</TableHead>
                 <TableHead>Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredCalls.map((call) => (
                 <TableRow key={call.id}>
-                  <TableCell className="font-medium">{call.clientName}</TableCell>
-                  <TableCell>{new Date(call.date).toLocaleDateString()}</TableCell>
-                  <TableCell>{call.time}</TableCell>
-                  <TableCell>{call.serviceName}</TableCell>
-                  <TableCell>{call.duration}min</TableCell>
+                  <TableCell className="font-mono text-xs">{call.call_id || 'N/A'}</TableCell>
+                  <TableCell className="font-medium">{call.client_name || 'N/A'}</TableCell>
+                  <TableCell>
+                    <div className="text-sm">
+                      <div>{new Date(call.time).toLocaleDateString()}</div>
+                      <div className="text-gray-500">{new Date(call.time).toLocaleTimeString()}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm">
+                      <div>{call.from_number || 'N/A'}</div>
+                      <div className="text-gray-500">→ {call.to_number || 'N/A'}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={call.type === 'inbound' ? 'default' : 'secondary'}>
+                      {call.type || 'N/A'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{call.duration}s</TableCell>
                   <TableCell>{getResultBadge(call.result)}</TableCell>
                   <TableCell>€{call.cost.toFixed(2)}</TableCell>
+                  <TableCell>
+                    {call.user_sentiment && (
+                      <Badge variant="outline" className="text-xs">
+                        {call.user_sentiment}
+                      </Badge>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm">
@@ -153,6 +200,13 @@ const CallsTab = () => {
                   </TableCell>
                 </TableRow>
               ))}
+              {filteredCalls.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={10} className="text-center py-8 text-gray-500">
+                    No se encontraron llamadas
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>

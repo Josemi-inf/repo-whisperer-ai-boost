@@ -9,7 +9,152 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      calls: {
+        Row: {
+          call_id: string | null
+          call_successful: boolean | null
+          call_summary: string | null
+          client_id: string | null
+          client_name: string | null
+          cost: number
+          created_at: string
+          disconnection_reason: string | null
+          duration: number
+          from_number: string | null
+          id: string
+          recording: string | null
+          result: string
+          service_id: string | null
+          service_name: string | null
+          time: string
+          to_number: string | null
+          transcription: string | null
+          type: string | null
+          updated_at: string
+          user_sentiment: string | null
+        }
+        Insert: {
+          call_id?: string | null
+          call_successful?: boolean | null
+          call_summary?: string | null
+          client_id?: string | null
+          client_name?: string | null
+          cost?: number
+          created_at?: string
+          disconnection_reason?: string | null
+          duration?: number
+          from_number?: string | null
+          id?: string
+          recording?: string | null
+          result: string
+          service_id?: string | null
+          service_name?: string | null
+          time: string
+          to_number?: string | null
+          transcription?: string | null
+          type?: string | null
+          updated_at?: string
+          user_sentiment?: string | null
+        }
+        Update: {
+          call_id?: string | null
+          call_successful?: boolean | null
+          call_summary?: string | null
+          client_id?: string | null
+          client_name?: string | null
+          cost?: number
+          created_at?: string
+          disconnection_reason?: string | null
+          duration?: number
+          from_number?: string | null
+          id?: string
+          recording?: string | null
+          result?: string
+          service_id?: string | null
+          service_name?: string | null
+          time?: string
+          to_number?: string | null
+          transcription?: string | null
+          type?: string | null
+          updated_at?: string
+          user_sentiment?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calls_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          company: string
+          created_at: string
+          email: string
+          id: string
+          name: string
+          phone: string
+          registration_date: string
+          services: string[] | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          company: string
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          phone: string
+          registration_date?: string
+          services?: string[] | null
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          company?: string
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          phone?: string
+          registration_date?: string
+          services?: string[] | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      webhook_data: {
+        Row: {
+          created_at: string
+          data: Json
+          id: string
+          processed: boolean
+          timestamp: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          data: Json
+          id?: string
+          processed?: boolean
+          timestamp?: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          id?: string
+          processed?: boolean
+          timestamp?: string
+          type?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
