@@ -27,7 +27,12 @@ export const useWebhookData = () => {
       if (clientsError) {
         console.error('Error loading clients:', clientsError);
       } else {
-        setClients(clientsData || []);
+        // Cast the data to proper types
+        const typedClients = (clientsData || []).map(client => ({
+          ...client,
+          status: client.status as Client['status']
+        }));
+        setClients(typedClients);
       }
 
       // Cargar llamadas
@@ -39,7 +44,12 @@ export const useWebhookData = () => {
       if (callsError) {
         console.error('Error loading calls:', callsError);
       } else {
-        setCalls(callsData || []);
+        // Cast the data to proper types
+        const typedCalls = (callsData || []).map(call => ({
+          ...call,
+          result: call.result as Call['result']
+        }));
+        setCalls(typedCalls);
       }
 
       // Cargar webhook data
@@ -51,7 +61,12 @@ export const useWebhookData = () => {
       if (webhookError) {
         console.error('Error loading webhook data:', webhookError);
       } else {
-        setWebhookData(webhookDataRes || []);
+        // Cast the data to proper types
+        const typedWebhookData = (webhookDataRes || []).map(webhook => ({
+          ...webhook,
+          type: webhook.type as WebhookData['type']
+        }));
+        setWebhookData(typedWebhookData);
       }
 
     } catch (error) {
@@ -74,8 +89,12 @@ export const useWebhookData = () => {
         throw error;
       }
 
-      setClients(prev => [data, ...prev]);
-      return data;
+      const typedClient = {
+        ...data,
+        status: data.status as Client['status']
+      };
+      setClients(prev => [typedClient, ...prev]);
+      return typedClient;
     } catch (error) {
       console.error('Error adding client:', error);
       throw error;
@@ -96,8 +115,12 @@ export const useWebhookData = () => {
         throw error;
       }
 
-      setClients(prev => prev.map(c => c.id === updatedClient.id ? data : c));
-      return data;
+      const typedClient = {
+        ...data,
+        status: data.status as Client['status']
+      };
+      setClients(prev => prev.map(c => c.id === updatedClient.id ? typedClient : c));
+      return typedClient;
     } catch (error) {
       console.error('Error updating client:', error);
       throw error;
@@ -136,8 +159,12 @@ export const useWebhookData = () => {
         throw error;
       }
 
-      setCalls(prev => [data, ...prev]);
-      return data;
+      const typedCall = {
+        ...data,
+        result: data.result as Call['result']
+      };
+      setCalls(prev => [typedCall, ...prev]);
+      return typedCall;
     } catch (error) {
       console.error('Error adding call:', error);
       throw error;
@@ -157,8 +184,12 @@ export const useWebhookData = () => {
         throw error;
       }
 
-      setWebhookData(prev => [webhookResult, ...prev]);
-      return webhookResult;
+      const typedWebhook = {
+        ...webhookResult,
+        type: webhookResult.type as WebhookData['type']
+      };
+      setWebhookData(prev => [typedWebhook, ...prev]);
+      return typedWebhook;
     } catch (error) {
       console.error('Error adding webhook data:', error);
       throw error;

@@ -21,7 +21,7 @@ const ClientForm = ({ client, onSubmit, onCancel }: ClientFormProps) => {
     email: client?.email || "",
     company: client?.company || "",
     status: client?.status || "pending",
-    registrationDate: client?.registrationDate || new Date().toISOString().split('T')[0],
+    registration_date: client?.registration_date || new Date().toISOString().split('T')[0],
     services: client?.services || []
   });
 
@@ -120,8 +120,8 @@ const ClientForm = ({ client, onSubmit, onCancel }: ClientFormProps) => {
               <Input
                 id="date"
                 type="date"
-                value={formData.registrationDate}
-                onChange={(e) => setFormData({ ...formData, registrationDate: e.target.value })}
+                value={formData.registration_date}
+                onChange={(e) => setFormData({ ...formData, registration_date: e.target.value })}
                 required
               />
             </div>

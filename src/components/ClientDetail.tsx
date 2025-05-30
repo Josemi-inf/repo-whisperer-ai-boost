@@ -20,31 +20,29 @@ const ClientDetail = ({ client, onBack }: ClientDetailProps) => {
     const mockCalls: Call[] = [
       {
         id: "1",
-        clientId: client.id,
-        clientName: client.name,
-        date: "2024-03-15",
-        time: "10:30",
+        client_id: client.id,
+        client_name: client.name,
+        time: new Date().toISOString(),
         duration: 45,
-        serviceId: "1",
-        serviceName: "Consulta General",
+        service_id: "1",
+        service_name: "Consulta General",
         result: "success",
         cost: 2.25,
         transcription: "Llamada exitosa sobre consulta general"
       },
       {
         id: "2",
-        clientId: client.id,
-        clientName: client.name,
-        date: "2024-03-10",
-        time: "14:15",
+        client_id: client.id,
+        client_name: client.name,
+        time: new Date().toISOString(),
         duration: 30,
-        serviceId: "2",
-        serviceName: "Soporte Técnico",
+        service_id: "2",
+        service_name: "Soporte Técnico",
         result: "success",
         cost: 1.50
       }
     ];
-    setCalls(mockCalls.filter(call => call.clientId === client.id));
+    setCalls(mockCalls.filter(call => call.client_id === client.id));
   }, [client.id]);
 
   const totalCalls = calls.length;
@@ -161,9 +159,9 @@ const ClientDetail = ({ client, onBack }: ClientDetailProps) => {
             <TableBody>
               {calls.map((call) => (
                 <TableRow key={call.id}>
-                  <TableCell>{new Date(call.date).toLocaleDateString()}</TableCell>
-                  <TableCell>{call.time}</TableCell>
-                  <TableCell>{call.serviceName}</TableCell>
+                  <TableCell>{new Date(call.time).toLocaleDateString()}</TableCell>
+                  <TableCell>{new Date(call.time).toLocaleTimeString()}</TableCell>
+                  <TableCell>{call.service_name}</TableCell>
                   <TableCell>{call.duration}min</TableCell>
                   <TableCell>{getResultBadge(call.result)}</TableCell>
                   <TableCell>€{call.cost.toFixed(2)}</TableCell>
